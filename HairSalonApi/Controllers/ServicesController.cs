@@ -1,11 +1,12 @@
-﻿using HairSalonApi.Models;
+﻿using Entities.Models;
+using Entities.DataTransferObjects;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace HairSalonApi.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/services")]
     public class ServicesController : Controller
     {
         private readonly HairSalonContext _context;
@@ -15,12 +16,9 @@ namespace HairSalonApi.Controllers
             _context = context;
         }
 
-        // GET: api/services
+        // Получение всех услуг
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Service>>> GetServices(
-            [FromQuery] string category,
-            [FromQuery] decimal? minPrice,
-            [FromQuery] decimal? maxPrice)
+        public async Task<IActionResult> GetAllServices([FromQuery] string? category, [FromQuery] decimal? minPrice, [FromQuery] decimal? maxPrice)
         {
             var query = _context.Services.AsQueryable();
 
@@ -28,50 +26,92 @@ namespace HairSalonApi.Controllers
                 query = query.Where(s => s.Category == category);
 
             if (minPrice.HasValue)
-                query = query.Where(s => s.Price >= minPrice);
+                query = query.Where(s => s.Price >= minPrice.Value);
 
             if (maxPrice.HasValue)
-                query = query.Where(s => s.Price <= maxPrice);
+                query = query.Where(s => s.Price <= maxPrice.Value);
 
-            return await query.ToListAsync();
+            var services = await query.ToListAsync();
+            return Ok(services);
         }
 
-        // POST: api/services
-        [HttpPost]
-        public async Task<ActionResult<Service>> CreateService(Service service)
-        {
-            service.Id = Guid.NewGuid();
-            _context.Services.Add(service);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetServices), new { id = service.Id }, service);
-        }
-
-        // PUT: api/services/{id}
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateService(Guid id, Service service)
-        {
-            if (id != service.Id) return BadRequest();
-            _context.Entry(service).State = EntityState.Modified;
-            try { await _context.SaveChangesAsync(); }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ServiceExists(id)) return NotFound();
-                else throw;
-            }
-            return NoContent();
-        }
-
-        // DELETE: api/services/{id}
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteService(Guid id)
+        // Получение услуги по ID
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetService(int id)
         {
             var service = await _context.Services.FindAsync(id);
             if (service == null) return NotFound();
-            _context.Services.Remove(service);
+            return Ok(service);
+        }
+
+        // Создание услуги
+        [HttpPost]
+        public async Task<IActionResult> CreateService(ServiceCreateDto serviceDto)
+        {
+            var service = new Service
+            {
+                Name = serviceDto.Name,
+                Description = serviceDto.Description,
+                Price = serviceDto.Price,
+                Category = serviceDto.Category
+            };
+
+            _context.Services.Add(service);
             await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetService), new { id = service.ServiceId }, service);
+        }
+
+        // Обновление услуги
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateService(int id, ServiceUpdateDto serviceDto)
+        {
+            var service = await _context.Services.FindAsync(id);
+            if (service == null) return NotFound();
+
+            if (!string.IsNullOrEmpty(serviceDto.Name))
+                service.Name = serviceDto.Name;
+
+            if (!string.IsNullOrEmpty(serviceDto.Description))
+                service.Description = serviceDto.Description;
+
+            if (serviceDto.Price > 0)
+                service.Price = serviceDto.Price;
+
+            if (!string.IsNullOrEmpty(serviceDto.Category))
+                service.Category = serviceDto.Category;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ServiceExists(id))
+                    return NotFound();
+                else
+                    throw;
+            }
+
             return NoContent();
         }
 
-        private bool ServiceExists(Guid id) => _context.Services.Any(e => e.Id == id);
+        // Удаление услуги
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteService(int id)
+        {
+            var service = await _context.Services.FindAsync(id);
+            if (service == null) return NotFound();
+
+            _context.Services.Remove(service);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        private bool ServiceExists(int id)
+        {
+            return _context.Services.Any(e => e.ServiceId == id);
+        }
     }
 }

@@ -1,11 +1,13 @@
-﻿using HairSalonApi.Models;
+﻿using Entities.Models;
+using Entities.DataTransferObjects;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace HairSalonApi.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/clients")]
     public class ClientsController : ControllerBase
     {
         private readonly HairSalonContext _context;
@@ -15,58 +17,87 @@ namespace HairSalonApi.Controllers
             _context = context;
         }
 
-        // GET
+        // Получение всех клиентов (только для администратора)
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Client>>> GetClients()
+        [Authorize(Roles = "Admin")] // В реальном проекте добавить авторизацию
+        public async Task<IActionResult> GetAllClients()
         {
-            return await _context.Clients.ToListAsync();
+            var clients = await _context.Clients.ToListAsync();
+            return Ok(clients);
         }
 
-        // GET by ID
+        // Получение клиента по ID
         [HttpGet("{id}")]
-        public async Task<ActionResult<Client>> GetClient(Guid id)
+        public async Task<IActionResult> GetClient(int id)
         {
             var client = await _context.Clients.FindAsync(id);
             if (client == null) return NotFound();
-            return client;
+            return Ok(client);
         }
 
-        // POST
-        [HttpPost]
-        public async Task<ActionResult<Client>> CreateClient(Client client)
-        {
-            client.Id = Guid.NewGuid();
-            _context.Clients.Add(client);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetClient), new { id = client.Id }, client);
-        }
-
-        // PUT by ID
+        // Обновление данных клиента
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateClient(Guid id, Client client)
+        public async Task<IActionResult> UpdateClient(int id, ClientUpdateDto clientDto)
         {
-            if (id != client.Id) return BadRequest();
-            _context.Entry(client).State = EntityState.Modified;
-            try { await _context.SaveChangesAsync(); }
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var client = await _context.Clients.FindAsync(id);
+            if (client == null)
+            {
+                return NotFound();
+            }
+
+            // Обновляем только те поля, которые были переданы
+            if (!string.IsNullOrEmpty(clientDto.FirstName))
+                client.FirstName = clientDto.FirstName;
+
+            if (!string.IsNullOrEmpty(clientDto.Email))
+                client.Email = clientDto.Email;
+
+            if (!string.IsNullOrEmpty(clientDto.Phone))
+                client.Phone = clientDto.Phone;
+
+            if (!string.IsNullOrEmpty(clientDto.Password))
+                client.Password = BCrypt.Net.BCrypt.HashPassword(clientDto.Password);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ClientExists(id)) return NotFound();
-                else throw;
+                if (!ClientExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
             }
+
             return NoContent();
         }
 
-        // DELETE by ID
+        private bool ClientExists(int id)
+        {
+            return _context.Clients.Any(e => e.ClientId == id);
+        }
+
+        // Удаление клиента (только для администратора)
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteClient(Guid id)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteClient(int id)
         {
             var client = await _context.Clients.FindAsync(id);
             if (client == null) return NotFound();
+
             _context.Clients.Remove(client);
             await _context.SaveChangesAsync();
             return NoContent();
         }
-
-        private bool ClientExists(Guid id) => _context.Clients.Any(e => e.Id == id);
     }
 }
