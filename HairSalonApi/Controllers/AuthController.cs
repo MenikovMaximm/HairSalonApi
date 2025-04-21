@@ -5,6 +5,7 @@ using HairSalonApi;
 using Microsoft.EntityFrameworkCore;
 using BCrypt.Net;
 using Microsoft.AspNetCore.Authorization;
+using HairSalonApi.Services;
 
 namespace HairSalonApi.Controllers
 {
@@ -13,13 +14,14 @@ namespace HairSalonApi.Controllers
     public class AuthController : ControllerBase
     {
         private readonly HairSalonContext _context;
+        private readonly JwtService _jwtService;
 
-        public AuthController(HairSalonContext context)
+        public AuthController(HairSalonContext context, JwtService jwtService)
         {
             _context = context;
+            _jwtService = jwtService;
         }
 
-        // Регистрация
         [HttpPost("register")]
         public async Task<IActionResult> Register(ClientRegisterDto clientDto)
         {
@@ -37,10 +39,17 @@ namespace HairSalonApi.Controllers
             _context.Clients.Add(client);
             await _context.SaveChangesAsync();
 
-            return Ok(new { client.ClientId, client.FirstName, client.Email });
+            var token = _jwtService.GenerateToken(client);
+
+            return Ok(new
+            {
+                client.ClientId,
+                client.FirstName,
+                client.Email,
+                Token = token
+            });
         }
 
-        // Авторизация
         [HttpPost("login")]
         public async Task<IActionResult> Login(ClientLoginDto clientDto)
         {
@@ -49,16 +58,23 @@ namespace HairSalonApi.Controllers
             if (client == null || !BCrypt.Net.BCrypt.Verify(clientDto.Password, client.Password))
                 return Unauthorized("Неверный email или пароль");
 
-            // В реальном проекте здесь должна быть генерация JWT токена
-            return Ok(new { client.ClientId, client.FirstName, client.Email });
+            var token = _jwtService.GenerateToken(client);
+
+            return Ok(new
+            {
+                client.ClientId,
+                client.FirstName,
+                client.Email,
+                Token = token
+            });
         }
 
-        // Выход (заглушка, в реальном проекте нужно инвалидировать токен)
         [HttpPost("logout")]
         [Authorize]
         public IActionResult Logout()
         {
-            return Ok("Вы успешно вышли из системы");
+            // В JWT нет штатного способа "разлогина", токен валиден до истечения срока
+            return Ok(new { Message = "Вы успешно вышли из системы" });
         }
     }
 }

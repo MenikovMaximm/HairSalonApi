@@ -2,6 +2,7 @@
 using Entities.DataTransferObjects;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HairSalonApi.Controllers
 {
@@ -18,6 +19,7 @@ namespace HairSalonApi.Controllers
 
         // Получение всех мастеров
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> GetAllMasters([FromQuery] string? specialization)
         {
             var query = _context.Masters.AsQueryable();
@@ -31,6 +33,7 @@ namespace HairSalonApi.Controllers
 
         // Получение мастера по ID
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<IActionResult> GetMaster(int id)
         {
             var master = await _context.Masters.FindAsync(id);
@@ -40,6 +43,7 @@ namespace HairSalonApi.Controllers
 
         // Создание мастера
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> CreateMaster(MasterCreateDto masterDto)
         {
             var master = new Master
@@ -56,6 +60,7 @@ namespace HairSalonApi.Controllers
 
         // Обновление мастера
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> UpdateMaster(int id, MasterUpdateDto masterDto)
         {
             var master = await _context.Masters.FindAsync(id);
@@ -84,6 +89,7 @@ namespace HairSalonApi.Controllers
 
         // Удаление мастера
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteMaster(int id)
         {
             var master = await _context.Masters.FindAsync(id);

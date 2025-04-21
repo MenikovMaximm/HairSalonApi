@@ -1,5 +1,6 @@
 ﻿using Entities.DataTransferObjects;
 using Entities.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,6 +18,7 @@ namespace HairSalonApi.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> GetAllAppointments(
        [FromQuery] DateTime? date,
        [FromQuery] int? clientId,
@@ -47,6 +49,7 @@ namespace HairSalonApi.Controllers
 
         // Получение записи по ID
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<IActionResult> GetAppointment(int id)
         {
             var appointment = await _context.Appointments
@@ -61,6 +64,7 @@ namespace HairSalonApi.Controllers
 
         // Создание записи
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> CreateAppointment(AppointmentCreateDto appointmentDto)
         {
             // Проверка существования связанных сущностей
@@ -101,6 +105,7 @@ namespace HairSalonApi.Controllers
 
         // Обновление записи
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> UpdateAppointment(int id, AppointmentUpdateDto appointmentDto)
         {
             var appointment = await _context.Appointments.FindAsync(id);
@@ -147,6 +152,7 @@ namespace HairSalonApi.Controllers
 
         // Удаление записи
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteAppointment(int id)
         {
             var appointment = await _context.Appointments.FindAsync(id);
