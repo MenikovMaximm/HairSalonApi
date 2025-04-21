@@ -13,7 +13,6 @@ namespace Entities.Models
         public string Phone { get; set; }
         public string Email { get; set; }
         public string Password { get; set; } // В реальном проекте храним хэш
-        public string Role { get; set; } = "Client"; // По умолчанию "Client"
         public List<Appointment> Appointments { get; set; }
     }
 }

@@ -23,7 +23,6 @@ namespace Entities.DataTransferObjects
 
         [Required(ErrorMessage = "Пароль обязателен")]
         [MinLength(6, ErrorMessage = "Пароль должен содержать минимум 6 символов")]
-        public string? Role { get; set; } // Опционально для админской регистрации
         public string Password { get; set; }
     }
 }

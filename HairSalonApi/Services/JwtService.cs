@@ -20,17 +20,15 @@ namespace HairSalonApi.Services
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]!);
 
-            var claims = new List<Claim>
-    {
-        new(ClaimTypes.NameIdentifier, client.ClientId.ToString()),
-        new(ClaimTypes.Email, client.Email),
-        new(ClaimTypes.Role, client.Role) // Добавляем роль в токен
-    };
-
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddDays(7),
+                Subject = new ClaimsIdentity(new[]
+                {
+                new Claim(ClaimTypes.NameIdentifier, client.ClientId.ToString()),
+                new Claim(ClaimTypes.Email, client.Email),
+                new Claim(ClaimTypes.Role, "Client") // Можно добавить роли
+            }),
+                Expires = DateTime.UtcNow.AddDays(Convert.ToDouble(_configuration["Jwt:ExpireDays"])),
                 Issuer = _configuration["Jwt:Issuer"],
                 Audience = _configuration["Jwt:Audience"],
                 SigningCredentials = new SigningCredentials(
