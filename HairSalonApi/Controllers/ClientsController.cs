@@ -17,9 +17,9 @@ namespace HairSalonApi.Controllers
             _context = context;
         }
 
-        // Получение всех клиентов (только для администратора)
+        // Получение всех клиентов
         [HttpGet]
-        [Authorize] // В реальном проекте добавить авторизацию
+        [Authorize]
         public async Task<IActionResult> GetAllClients()
         {
             var clients = await _context.Clients.ToListAsync();
@@ -89,7 +89,7 @@ namespace HairSalonApi.Controllers
             return _context.Clients.Any(e => e.ClientId == id);
         }
 
-        // Удаление клиента (только для администратора)
+        // Удаление клиента
         [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteClient(int id)

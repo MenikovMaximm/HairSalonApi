@@ -73,7 +73,6 @@ namespace HairSalonApi.Controllers
         [Authorize]
         public IActionResult Logout()
         {
-            // В JWT нет штатного способа "разлогина", токен валиден до истечения срока
             return Ok(new { Message = "Вы успешно вышли из системы" });
         }
     }
