@@ -16,9 +16,11 @@ namespace Entities.DataTransferObjects
         public int ServiceId { get; set; }
 
         [Required(ErrorMessage = "Дата обязательна")]
+        [DataType(DataType.Date)]
         public DateTime Date { get; set; }
 
         [Required(ErrorMessage = "Время обязательно")]
+        [RegularExpression(@"^([01]\d|2[0-3]):[0-5]\d$")]
         public TimeSpan Time { get; set; }
 
         [Required(ErrorMessage = "Статус обязателен")]
