@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Entities.DataTransferObjects
@@ -10,32 +12,37 @@ namespace Entities.DataTransferObjects
     {
         public int AppointmentId { get; set; }
         public DateTime Date { get; set; }
-        public TimeSpan Time { get; set; }
         public string Status { get; set; }
 
-        public ClientSimpleDto Client { get; set; }
-        public MasterSimpleDto Master { get; set; }
-        public ServiceSimpleDto Service { get; set; }
+        public ClientShortInfoDto Client { get; set; }
+        public MasterWithAppointmentsDto Master { get; set; }
+        public ServiceInfoDto Service { get; set; }
     }
 
-    public class ClientSimpleDto
+    public class ClientShortInfoDto
     {
-        public int ClientId { get; set; }
         public string FirstName { get; set; }
         public string Phone { get; set; }
     }
 
-    public class MasterSimpleDto
+    public class MasterWithAppointmentsDto
     {
-        public int MasterId { get; set; }
         public string FirstName { get; set; }
         public string Major { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public List<AppointmentShortInfoDto> Appointments { get; set; }
+
     }
 
-    public class ServiceSimpleDto
+    public class ServiceInfoDto
     {
-        public int ServiceId { get; set; }
         public string Name { get; set; }
         public decimal Price { get; set; }
+        public string Category { get; set; }
+    }
+
+    public class AppointmentShortInfoDto
+    {
+        public DateTime Date { get; set; }
     }
 }

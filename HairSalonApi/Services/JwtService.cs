@@ -26,7 +26,7 @@ namespace HairSalonApi.Services
                 {
                 new Claim(ClaimTypes.NameIdentifier, client.ClientId.ToString()),
                 new Claim(ClaimTypes.Email, client.Email),
-                new Claim(ClaimTypes.Role, "Client") // Можно добавить роли
+                new(ClaimTypes.Role, client.Role)
             }),
                 Expires = DateTime.UtcNow.AddDays(Convert.ToDouble(_configuration["Jwt:ExpireDays"])),
                 Issuer = _configuration["Jwt:Issuer"],

@@ -23,6 +23,7 @@ namespace HairSalonApi.Controllers
         }
 
         [HttpPost("register")]
+        [AllowAnonymous]
         public async Task<IActionResult> Register(ClientRegisterDto clientDto)
         {
             if (await _context.Clients.AnyAsync(c => c.Email == clientDto.Email))
@@ -33,7 +34,8 @@ namespace HairSalonApi.Controllers
                 FirstName = clientDto.FirstName,
                 Email = clientDto.Email,
                 Phone = clientDto.Phone,
-                Password = BCrypt.Net.BCrypt.HashPassword(clientDto.Password)
+                Password = BCrypt.Net.BCrypt.HashPassword(clientDto.Password),
+                Role = "Client"
             };
 
             _context.Clients.Add(client);
@@ -41,16 +43,11 @@ namespace HairSalonApi.Controllers
 
             var token = _jwtService.GenerateToken(client);
 
-            return Ok(new
-            {
-                client.ClientId,
-                client.FirstName,
-                client.Email,
-                Token = token
-            });
+            return Ok();
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<IActionResult> Login(ClientLoginDto clientDto)
         {
             var client = await _context.Clients.FirstOrDefaultAsync(c => c.Email == clientDto.Email);
@@ -62,9 +59,6 @@ namespace HairSalonApi.Controllers
 
             return Ok(new
             {
-                client.ClientId,
-                client.FirstName,
-                client.Email,
                 Token = token
             });
         }

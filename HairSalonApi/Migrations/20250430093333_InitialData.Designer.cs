@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HairSalonApi.Migrations
 {
     [DbContext(typeof(HairSalonContext))]
-    [Migration("20250420112405_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250430093333_InitialData")]
+    partial class InitialData
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -40,9 +40,6 @@ namespace HairSalonApi.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<TimeSpan>("Time")
                         .HasColumnType("TEXT");
 
                     b.HasKey("AppointmentId");
@@ -75,6 +72,10 @@ namespace HairSalonApi.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Role")
                         .IsRequired()
                         .HasColumnType("TEXT");
 

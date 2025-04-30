@@ -77,7 +77,17 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireRole("Admin"));
+
+    options.AddPolicy("MasterOnly", policy =>
+        policy.RequireRole("Master"));
+
+    options.AddPolicy("ClientOnly", policy =>
+        policy.RequireRole("Client"));
+});
 
 builder.Services.AddDbContext<HairSalonContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -88,27 +98,40 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<HairSalonContext>();
-    db.Database.Migrate();
-}
+    if (!db.Clients.Any(c => c.Role == "Admin"))
+    {
+        var admin = new Client
+        {
+            FirstName = "Admin",
+            Email = "admin@example.com",
+            Phone = "+79990000000",
+            Password = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
+            Role = "Admin"
+        };
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
+        db.Clients.Add(admin);
+        await db.SaveChangesAsync();
+    }
+
+    // Configure the HTTP request pipeline.
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
+
+    app.UseHttpsRedirection();
+
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+    app.MapControllers();
+
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Salon API V1");
+    });
+
+    app.Run();
 }
-
-app.UseHttpsRedirection();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.UseSwagger();
-app.UseSwaggerUI(c =>
-{
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Salon API V1");
-});
-
-app.Run();

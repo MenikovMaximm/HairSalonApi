@@ -39,9 +39,6 @@ namespace HairSalonApi.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<TimeSpan>("Time")
-                        .HasColumnType("TEXT");
-
                     b.HasKey("AppointmentId");
 
                     b.HasIndex("ClientId");
@@ -72,6 +69,10 @@ namespace HairSalonApi.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Role")
                         .IsRequired()
                         .HasColumnType("TEXT");
 

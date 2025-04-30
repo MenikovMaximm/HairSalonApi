@@ -18,7 +18,7 @@ namespace HairSalonApi.Controllers
         }
 
         [HttpGet]
-        [Authorize]
+        [Authorize(Roles = "Admin,Client,Master")]
         public async Task<IActionResult> GetAllAppointments(
        [FromQuery] DateTime? date,
        [FromQuery] int? clientId,
@@ -28,6 +28,7 @@ namespace HairSalonApi.Controllers
             var query = _context.Appointments
                 .Include(a => a.Client)
                 .Include(a => a.Master)
+                .ThenInclude(m => m.Appointments)
                 .Include(a => a.Service)
                 .AsQueryable();
 
@@ -43,13 +44,43 @@ namespace HairSalonApi.Controllers
             if (!string.IsNullOrEmpty(status))
                 query = query.Where(a => a.Status == status);
 
-            var appointments = await query.ToListAsync();
+            var appointments = await query
+        .Select(a => new AppointmentResponseDto
+        {
+            AppointmentId = a.AppointmentId,
+            Date = a.Date,
+            Status = a.Status,
+            Client = new ClientShortInfoDto
+            {
+                FirstName = a.Client.FirstName,
+                Phone = a.Client.Phone
+            },
+            Master = new MasterWithAppointmentsDto
+            {
+                FirstName = a.Master.FirstName,
+                Major = a.Master.Major,
+                Appointments = a.Master.Appointments
+                    .Select(ma => new AppointmentShortInfoDto
+                    {
+                        Date = ma.Date
+                    })
+                    .ToList()
+            },
+            Service = new ServiceInfoDto
+            {
+                Name = a.Service.Name,
+                Price = a.Service.Price,
+                Category = a.Service.Category
+            }
+        })
+        .ToListAsync();
+
             return Ok(appointments);
         }
 
         // Получение записи по ID
         [HttpGet("{id}")]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAppointment(int id)
         {
             var appointment = await _context.Appointments
@@ -59,12 +90,34 @@ namespace HairSalonApi.Controllers
                 .FirstOrDefaultAsync(a => a.AppointmentId == id);
 
             if (appointment == null) return NotFound();
-            return Ok(appointment);
+
+            var response = new AppointmentResponseDto
+            {
+                AppointmentId = appointment.AppointmentId,
+                Date = appointment.Date,
+                Status = appointment.Status,
+                Client = new ClientShortInfoDto
+                {
+                    FirstName = appointment.Client.FirstName,
+                    Phone = appointment.Client.Phone
+                },
+                Master = new MasterWithAppointmentsDto
+                {
+                    FirstName = appointment.Master.FirstName,
+                    Major = appointment.Master.Major
+                },
+                Service = new ServiceInfoDto
+                {
+                    Name = appointment.Service.Name,
+                    Price = appointment.Service.Price,
+                }
+            };
+            return Ok(response);
         }
 
         // Создание записи
         [HttpPost]
-        [Authorize]
+        [Authorize(Roles = "Admin,Client")]
         public async Task<IActionResult> CreateAppointment(AppointmentCreateDto appointmentDto)
         {
             // Проверка существования связанных сущностей
@@ -81,7 +134,6 @@ namespace HairSalonApi.Controllers
             var isMasterAvailable = !await _context.Appointments
                 .AnyAsync(a => a.MasterId == appointmentDto.MasterId
                             && a.Date == appointmentDto.Date
-                            && a.Time == appointmentDto.Time
                             && a.Status != "Отменен");
 
             if (!isMasterAvailable)
@@ -93,7 +145,6 @@ namespace HairSalonApi.Controllers
                 MasterId = appointmentDto.MasterId,
                 ServiceId = appointmentDto.ServiceId,
                 Date = appointmentDto.Date,
-                Time = appointmentDto.Time,
                 Status = "Запланирован"
             };
 
@@ -105,7 +156,7 @@ namespace HairSalonApi.Controllers
 
         // Обновление записи
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Roles = "Admin,Master")]
         public async Task<IActionResult> UpdateAppointment(int id, AppointmentUpdateDto appointmentDto)
         {
             var appointment = await _context.Appointments.FindAsync(id);
@@ -122,7 +173,6 @@ namespace HairSalonApi.Controllers
             var isMasterAvailable = !await _context.Appointments
                 .AnyAsync(a => a.MasterId == appointmentDto.MasterId
                             && a.Date == appointmentDto.Date
-                            && a.Time == appointmentDto.Time
                             && a.Status != "Отменен"
                             && a.AppointmentId != id);
 
@@ -132,7 +182,6 @@ namespace HairSalonApi.Controllers
             appointment.MasterId = appointmentDto.MasterId;
             appointment.ServiceId = appointmentDto.ServiceId;
             appointment.Date = appointmentDto.Date;
-            appointment.Time = appointmentDto.Time;
             appointment.Status = appointmentDto.Status;
 
             try
@@ -152,7 +201,7 @@ namespace HairSalonApi.Controllers
 
         // Удаление записи
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteAppointment(int id)
         {
             var appointment = await _context.Appointments.FindAsync(id);

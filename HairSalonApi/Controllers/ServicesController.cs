@@ -19,7 +19,7 @@ namespace HairSalonApi.Controllers
 
         // Получение всех услуг
         [HttpGet]
-        [Authorize]
+        [Authorize(Roles = "Master,Client,Admin")]
         public async Task<IActionResult> GetAllServices([FromQuery] string? category, [FromQuery] decimal? minPrice, [FromQuery] decimal? maxPrice)
         {
             var query = _context.Services.AsQueryable();
@@ -39,7 +39,7 @@ namespace HairSalonApi.Controllers
 
         // Получение услуги по ID
         [HttpGet("{id}")]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetService(int id)
         {
             var service = await _context.Services.FindAsync(id);
@@ -49,7 +49,7 @@ namespace HairSalonApi.Controllers
 
         // Создание услуги
         [HttpPost]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateService(ServiceCreateDto serviceDto)
         {
             var service = new Service
@@ -68,7 +68,7 @@ namespace HairSalonApi.Controllers
 
         // Обновление услуги
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateService(int id, ServiceUpdateDto serviceDto)
         {
             var service = await _context.Services.FindAsync(id);
@@ -103,7 +103,7 @@ namespace HairSalonApi.Controllers
 
         // Удаление услуги
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteService(int id)
         {
             var service = await _context.Services.FindAsync(id);

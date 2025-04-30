@@ -19,7 +19,7 @@ namespace HairSalonApi.Controllers
 
         // Получение всех клиентов
         [HttpGet]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAllClients()
         {
             var clients = await _context.Clients.ToListAsync();
@@ -27,7 +27,7 @@ namespace HairSalonApi.Controllers
         }
 
         // Получение клиента по ID
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetClient(int id)
         {
@@ -37,7 +37,7 @@ namespace HairSalonApi.Controllers
         }
 
         // Обновление данных клиента
-        [Authorize]
+        [Authorize(Roles = "Client")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateClient(int id, ClientUpdateDto clientDto)
         {
@@ -90,7 +90,7 @@ namespace HairSalonApi.Controllers
         }
 
         // Удаление клиента
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteClient(int id)
         {

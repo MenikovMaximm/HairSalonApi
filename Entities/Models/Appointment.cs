@@ -16,7 +16,6 @@ namespace Entities.Models
         public int ServiceId { get; set; }
         public Service Service { get; set; }
         public DateTime Date { get; set; }
-        public TimeSpan Time { get; set; }
         public string Status { get; set; } // "Запланирован", "Выполнен", "Отменен"
     }
 }

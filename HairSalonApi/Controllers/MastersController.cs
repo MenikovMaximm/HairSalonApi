@@ -19,7 +19,7 @@ namespace HairSalonApi.Controllers
 
         // Получение всех мастеров
         [HttpGet]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAllMasters([FromQuery] string? specialization)
         {
             var query = _context.Masters.AsQueryable();
@@ -33,7 +33,7 @@ namespace HairSalonApi.Controllers
 
         // Получение мастера по ID
         [HttpGet("{id}")]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetMaster(int id)
         {
             var master = await _context.Masters.FindAsync(id);
@@ -43,7 +43,7 @@ namespace HairSalonApi.Controllers
 
         // Создание мастера
         [HttpPost]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateMaster(MasterCreateDto masterDto)
         {
             var master = new Master
@@ -60,7 +60,7 @@ namespace HairSalonApi.Controllers
 
         // Обновление мастера
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Roles = "Master,Admin")]
         public async Task<IActionResult> UpdateMaster(int id, MasterUpdateDto masterDto)
         {
             var master = await _context.Masters.FindAsync(id);
@@ -89,7 +89,7 @@ namespace HairSalonApi.Controllers
 
         // Удаление мастера
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteMaster(int id)
         {
             var master = await _context.Masters.FindAsync(id);
